@@ -142,4 +142,4 @@ class _XGestureExampleState extends State<XGestureExample> {
 
 
 ## Author
-Viet Nguyen - vietnt291@gmail.com
+Viet Nguyen - taodo2291@gmail.com
