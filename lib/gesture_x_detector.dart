@@ -23,23 +23,58 @@ class XGestureDetector extends StatefulWidget {
       this.longPressTimeConsider = 350,
       this.onLongPress});
 
+  /// The widget below this widget in the tree.
+  ///
+  /// {@macro flutter.widgets.child}
   final Widget child;
+
+  /// a flag to enable/disable tap event when double tap event occurs.
+  ///
+  /// By default it is false, that mean when user double tap on screen: it will trigge 1 double tap event and 2 single tap events
   final bool bypassTapEventOnDoubleTap;
+
+  /// A specific duration to detect double tap
   final int doubleTapTimeConsider;
+
+  /// The pointer that previously triggered the onTapDown has also triggered onTapUp which ends up causing a tap.
   final void Function(int pointer, Offset localPos, Offset position) onTap;
+
+  /// A pointer has contacted the screen with a primary button and has begun to
+  /// move.
   final void Function(int pointer, Offset localPos, Offset position)
       onMoveStart;
+
+  /// A pointer that is in contact with the screen with a primary button and
+  /// moving has moved again.
   final void Function(
           Offset localPos, Offset position, Offset localDelta, Offset delta)
       onMoveUpdate;
+
+  /// A pointer that was previously in contact with the screen with a primary
+  /// button and moving is no longer in contact with the screen and was moving
+  /// at a specific velocity when it stopped contacting the screen.
   final void Function(int pointer, Offset localPosition, Offset position)
       onMoveEnd;
+
+  /// The pointers in contact with the screen have established a focal point and
+  /// initial scale of 1.0.
   final void Function(Offset initialFocusPoint) onScaleStart;
+
+  /// The pointers in contact with the screen have indicated a new focal point
+  /// and/or scale.
   final void Function(Offset changedFocusPoint, double scale) onScaleUpdate;
+
+  /// The pointers are no longer in contact with the screen.
   final void Function() onScaleEnd;
+
+  /// The user has tapped the screen at the same location twice in quick succession.
   final void Function(Offset localPos, Offset position) onDoubleTap;
+
+  /// A pointer has remained in contact with the screen at the same location for a long period of time
   final void Function(int pointer, Offset localPos, Offset position)
       onLongPress;
+
+  /// A specific duration to detect long press
   final int longPressTimeConsider;
 
   @override
