@@ -48,10 +48,10 @@ class _XGestureExampleState extends State<XGestureExample> {
     print('onScaleEnd');
   }
 
-  void onScaleUpdate(changedFocusPoint, scale) {
+  void onScaleUpdate(changedFocusPoint, scale, rotation) {
     setLastEventName('onScaleUpdate');
     print(
-        'onScaleUpdate - changedFocusPoint:  $changedFocusPoint ; scale: $scale');
+        'onScaleUpdate - changedFocusPoint:  $changedFocusPoint ; scale: $scale ;Rotation: $rotation');
   }
 
   void onScaleStart(initialFocusPoint) {
