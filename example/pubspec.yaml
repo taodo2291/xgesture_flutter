@@ -24,7 +24,6 @@ dependencies:
     flutter:
         sdk: flutter
     gesture_x_detector:
-        path: /home/taodo2291/taodo2291/workspace/dev-projects/graph-modelling/td-graph-tool-v2/mobiles/gesture_x_detector
 
     # The following adds the Cupertino Icons font to your application.
     # Use with the CupertinoIcons class for iOS style icons.

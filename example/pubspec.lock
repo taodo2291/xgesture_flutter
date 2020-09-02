@@ -70,9 +70,9 @@ packages:
   gesture_x_detector:
     dependency: "direct main"
     description:
-      path: "/home/taodo2291/taodo2291/workspace/dev-projects/graph-modelling/td-graph-tool-v2/mobiles/gesture_x_detector"
-      relative: false
-    source: path
+      name: gesture_x_detector
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.0.3"
   matcher:
     dependency: transitive
