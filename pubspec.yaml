@@ -1,6 +1,6 @@
 name: gesture_x_detector
 description: a lightweight gesture detector that supports multiple types(Tap, DoubleTap, Scale, Long-Press, Move) and all callbacks can be used simultaneously
-version: 0.0.3
+version: 0.0.4
 # author: Viet Nguyen <taodo2291@gmail.com>
 homepage: https://github.com/taodo2291/xgesture_flutter
 
@@ -11,6 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  vector_math: ^2.0.8
 
 dev_dependencies:
   flutter_test:

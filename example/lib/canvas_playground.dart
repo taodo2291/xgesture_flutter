@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gesture_x_detector/gesture_x_detector.dart';
-import 'dart:math' as Math;
+import 'dart:math' as math;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,15 +32,17 @@ class CanvasGestureExample extends StatelessWidget {
       ),
       onScaleStart: (initialFocusPoint) =>
           model.startScaleRotate(initialFocusPoint),
-      onScaleUpdate: (changedFocusPoint, scale, rotationAngle) =>
-          model.updateScaleRotate(scale, changedFocusPoint, rotationAngle),
+      onScaleUpdate: (event) => model.updateScaleRotate(
+          event.scale, event.focalPoint, event.rotationAngle),
       onScaleEnd: () => model.staging(),
-      onMoveUpdate: (localPos, position, localDelta, delta) =>
-          model.moveMNode(localDelta),
-      onDoubleTap: (localPos, position) => model.overlap(localPos),
-      onLongPress: (pointer, localPos, position) => model.setFNodePos(position),
-      onTap: (pointer, localPos, position) => model.setMNodePos(position),
+      onMoveUpdate: model.moving,
+      onDoubleTap: (event) => model.overlap(event.position),
+      onLongPress: (event) => model.setFNodePos(event.position),
+      onTap: (event) => model.setMNodePos(event.position),
       bypassTapEventOnDoubleTap: true,
+      bypassMoveEventAfterLongPress: false,
+      onMoveStart: (event) => model.startMoving(event.position),
+      onMoveEnd: (_) => model.endMoving(),
     );
   }
 }
@@ -113,6 +115,8 @@ class Model extends ChangeNotifier {
 
   get originFocalPoint => _originFocalPoint;
 
+  Node currentNode;
+
   Model(this.fNode, this.mNode, this.baseScale, this._rotate);
 
   static createDefault() {
@@ -124,7 +128,7 @@ class Model extends ChangeNotifier {
   void updateScaleRotate(
       double newScale, Offset changedFocusPoint, double newRotation) {
     _scale = newScale;
-    _rotate = newRotation;
+    _rotate = 0 - newRotation;
 
     _startPoint = _originFocalPoint - _focalPoint / scale;
 
@@ -139,11 +143,11 @@ class Model extends ChangeNotifier {
   Offset rotateOffset(Offset centerPos, Offset currentPos, double angle) {
     double distance = (currentPos - centerPos).distance;
     double finalAngle =
-        Math.atan2(currentPos.dx - centerPos.dx, currentPos.dy - centerPos.dy) -
+        math.atan2(currentPos.dx - centerPos.dx, currentPos.dy - centerPos.dy) -
             angle;
 
-    return Offset(centerPos.dx + distance * Math.sin(finalAngle),
-        centerPos.dy + distance * Math.cos(finalAngle));
+    return Offset(centerPos.dx + distance * math.sin(finalAngle),
+        centerPos.dy + distance * math.cos(finalAngle));
   }
 
   void staging() {
@@ -159,10 +163,36 @@ class Model extends ChangeNotifier {
     fNode.pos = fNode.displayPos + _startPoint;
   }
 
-  void moveMNode(Offset delta) {
-    this.mNode.pos += delta / scale;
-    this.mNode.displayPos += delta / scale;
+  void startMoving(Offset position) {
+    var pos = position / scale;
+    var distance = (mNode.displayPos - pos).distance;
+    if (distance < mNode.radius) {
+      currentNode = mNode;
+    } else {
+      var fdistance = (fNode.displayPos - pos).distance;
+      if (fdistance < fNode.radius) {
+        currentNode = fNode;
+      }
+    }
+  }
+
+  void moving(MoveEvent event) {
+    var delta = event.delta / scale;
+    if (currentNode != null) {
+      currentNode.pos += delta;
+      currentNode.displayPos += delta;
+    } else {
+      mNode.pos += delta;
+      mNode.displayPos += delta;
+
+      fNode.pos += delta;
+      fNode.displayPos += delta;
+    }
     notifyListeners();
+  }
+
+  void endMoving() {
+    currentNode = null;
   }
 
   void overlap(Offset pos) {

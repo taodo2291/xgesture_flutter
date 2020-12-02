@@ -48,45 +48,45 @@ class _XGestureExampleState extends State<XGestureExample> {
     print('onScaleEnd');
   }
 
-  void onScaleUpdate(changedFocusPoint, scale, rotation) {
+  void onScaleUpdate(ScaleEvent event) {
     setLastEventName('onScaleUpdate');
     print(
-        'onScaleUpdate - changedFocusPoint:  $changedFocusPoint ; scale: $scale ;Rotation: $rotation');
+        'onScaleUpdate - changedFocusPoint:  ${event.focalPoint} ; scale: ${event.scale} ;Rotation: ${event.rotationAngle}');
   }
 
   void onScaleStart(initialFocusPoint) {
     setLastEventName('onScaleStart');
-    print('onScaleStart - initialFocusPoint: ' + initialFocusPoint.toString());
+    print('onScaleStart - initialFocusPoint: $initialFocusPoint');
   }
 
-  void onMoveUpdate(localPos, position, localDelta, delta) {
+  void onMoveUpdate(MoveEvent event) {
     setLastEventName('onMoveUpdate');
-    print('onMoveUpdate - pos: ' + localPos.toString());
+    print('onMoveUpdate - pos: ${event.localPos} delta: ${event.delta}');
   }
 
-  void onMoveEnd(pointer, localPos, position) {
+  void onMoveEnd(localPos) {
     setLastEventName('onMoveEnd');
-    print('onMoveEnd - pos: ' + localPos.toString());
+    print('onMoveEnd - pos: $localPos');
   }
 
-  void onMoveStart(pointer, localPos, position) {
+  void onMoveStart(localPos) {
     setLastEventName('onMoveStart');
-    print('onMoveStart - pos: ' + localPos.toString());
+    print('onMoveStart - pos: $localPos');
   }
 
-  void onLongPress(pointer, localPos, position) {
+  void onLongPress(TapEvent event) {
     setLastEventName('onLongPress');
-    print('onLongPress - pos: ' + localPos.toString());
+    print('onLongPress - pos: ${event.localPos}');
   }
 
-  void onDoubleTap(localPos, position) {
+  void onDoubleTap(event) {
     setLastEventName('onDoubleTap');
-    print('onDoubleTap - pos: ' + localPos.toString());
+    print('onDoubleTap - pos: ' + event.localPos.toString());
   }
 
-  void onTap(pointer, localPos, position) {
+  void onTap(event) {
     setLastEventName('onTap');
-    print('onTap - pos: ' + localPos.toString());
+    print('onTap - pos: ' + event.localPos.toString());
   }
 
   void setLastEventName(String eventName) {
