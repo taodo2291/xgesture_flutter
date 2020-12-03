@@ -53,7 +53,7 @@ class MyPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawColor(Colors.lightGreen[300], BlendMode.color);
+    canvas.drawColor(Colors.lightGreen[300]!, BlendMode.color);
     canvas.scale(paintModel.scale);
 
     Paint nodePaint = Paint()
@@ -115,7 +115,7 @@ class Model extends ChangeNotifier {
 
   get originFocalPoint => _originFocalPoint;
 
-  Node currentNode;
+  Node? currentNode;
 
   Model(this.fNode, this.mNode, this.baseScale, this._rotate);
 
@@ -179,8 +179,9 @@ class Model extends ChangeNotifier {
   void moving(MoveEvent event) {
     var delta = event.delta / scale;
     if (currentNode != null) {
-      currentNode.pos += delta;
-      currentNode.displayPos += delta;
+      var node = currentNode!;
+      node.pos += delta;
+      node.displayPos += delta;
     } else {
       mNode.pos += delta;
       mNode.displayPos += delta;
@@ -232,7 +233,7 @@ class Model extends ChangeNotifier {
 class Node {
   Offset pos;
   int radius;
-  Offset displayPos;
+  late Offset displayPos;
 
   Node(this.pos, this.radius) {
     displayPos = this.pos;

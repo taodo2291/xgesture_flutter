@@ -13,7 +13,7 @@ import 'dart:math' as math;
 class XGestureDetector extends StatefulWidget {
   /// Creates a widget that detects gestures.
   XGestureDetector(
-      {@required this.child,
+      {required this.child,
       this.onTap,
       this.onMoveUpdate,
       this.onMoveEnd,
@@ -49,37 +49,37 @@ class XGestureDetector extends StatefulWidget {
   final int doubleTapTimeConsider;
 
   /// The pointer that previously triggered the onTapDown has also triggered onTapUp which ends up causing a tap.
-  final TapEventListener onTap;
+  final TapEventListener? onTap;
 
   /// A pointer has contacted the screen with a primary button and has begun to
   /// move.
-  final MoveEventListener onMoveStart;
+  final MoveEventListener? onMoveStart;
 
   /// A pointer that is in contact with the screen with a primary button and
   /// made a move
-  final MoveEventListener onMoveUpdate;
+  final MoveEventListener? onMoveUpdate;
 
   /// A pointer that was previously in contact with the screen with a primary
   /// button and moving is no longer in contact with the screen and was moving
   /// at a specific velocity when it stopped contacting the screen.
-  final MoveEventListener onMoveEnd;
+  final MoveEventListener? onMoveEnd;
 
   /// The pointers in contact with the screen have established a focal point and
   /// initial scale of 1.0.
-  final void Function(Offset initialFocusPoint) onScaleStart;
+  final void Function(Offset initialFocusPoint)? onScaleStart;
 
   /// The pointers in contact with the screen have indicated a new focal point
   /// and/or scale.
-  final ScaleEventListener onScaleUpdate;
+  final ScaleEventListener? onScaleUpdate;
 
   /// The pointers are no longer in contact with the screen.
-  final void Function() onScaleEnd;
+  final void Function()? onScaleEnd;
 
   /// The user has tapped the screen at the same location twice in quick succession.
-  final TapEventListener onDoubleTap;
+  final TapEventListener? onDoubleTap;
 
   /// A pointer has remained in contact with the screen at the same location for a long period of time
-  final TapEventListener onLongPress;
+  final TapEventListener? onLongPress;
 
   /// A specific duration to detect long press
   final int longPressTimeConsider;
@@ -99,10 +99,10 @@ enum _GestureState {
 
 class _XGestureDetectorState extends State<XGestureDetector> {
   List<_Touch> touches = [];
-  double initialScaleDistance;
+  double initialScaleDistance = 1.0;
   _GestureState state = _GestureState.Unknown;
-  Timer doubleTapTimer;
-  Timer longPressTimer;
+  Timer? doubleTapTimer;
+  Timer? longPressTimer;
   Offset lastTouchUpPos = Offset(0, 0);
 
   @override
@@ -152,7 +152,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
         break;
       case _GestureState.MoveStart:
         if (widget.onMoveUpdate != null)
-          widget.onMoveUpdate(MoveEvent(
+          widget.onMoveUpdate!(MoveEvent(
               event.localPosition, event.position, event.pointer,
               delta: event.delta, localDelta: event.localDelta));
         break;
@@ -163,7 +163,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
         if (widget.onScaleStart != null) {
           final centerOffset =
               (touches[0].currentOffset + touches[1].currentOffset) / 2;
-          widget.onScaleStart(centerOffset);
+          widget.onScaleStart!(centerOffset);
         }
         break;
       case _GestureState.Scalling:
@@ -174,7 +174,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
           final centerOffset =
               (touches[0].currentOffset + touches[1].currentOffset) / 2;
 
-          widget.onScaleUpdate(ScaleEvent(
+          widget.onScaleUpdate!(ScaleEvent(
               centerOffset, newDistance / initialScaleDistance, rotation));
         }
         break;
@@ -188,7 +188,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
     state = _GestureState.MoveStart;
     touch.startOffset = event.localPosition;
     if (widget.onMoveStart != null)
-      widget.onMoveStart(
+      widget.onMoveStart!(
           MoveEvent(event.localPosition, event.localPosition, event.pointer));
   }
 
@@ -218,7 +218,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
         } else {
           cleanupTimer();
           if ((event.localPosition - lastTouchUpPos).distanceSquared < 200) {
-            widget.onDoubleTap(tapEvent);
+            widget.onDoubleTap!(tapEvent);
           } else {
             startDoubleTapTimer(tapEvent);
           }
@@ -227,11 +227,11 @@ class _XGestureDetectorState extends State<XGestureDetector> {
     } else if (state == _GestureState.ScaleStart ||
         state == _GestureState.Scalling) {
       state = _GestureState.Unknown;
-      if (widget.onScaleEnd != null) widget.onScaleEnd();
+      if (widget.onScaleEnd != null) widget.onScaleEnd!();
     } else if (state == _GestureState.MoveStart) {
       state = _GestureState.Unknown;
       if (widget.onMoveEnd != null)
-        widget.onMoveEnd(
+        widget.onMoveEnd!(
             MoveEvent(event.localPosition, event.position, event.pointer));
     } else if (state == _GestureState.Unknown && touchCount == 2) {
       state = _GestureState.ScaleStart;
@@ -245,14 +245,14 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   void startLongPressTimer(TapEvent event) {
     if (widget.onLongPress != null) {
       if (longPressTimer != null) {
-        longPressTimer.cancel();
+        longPressTimer!.cancel();
         longPressTimer = null;
       }
       longPressTimer =
           Timer(Duration(milliseconds: widget.longPressTimeConsider), () {
         if (touchCount == 1 && touches[0].id == event.pointer) {
           state = _GestureState.LongPress;
-          widget.onLongPress(event);
+          widget.onLongPress!(event);
           cleanupTimer();
         }
       });
@@ -272,18 +272,18 @@ class _XGestureDetectorState extends State<XGestureDetector> {
 
   void cleanupTimer() {
     if (doubleTapTimer != null) {
-      doubleTapTimer.cancel();
+      doubleTapTimer!.cancel();
       doubleTapTimer = null;
     }
     if (longPressTimer != null) {
-      longPressTimer.cancel();
+      longPressTimer!.cancel();
       longPressTimer = null;
     }
   }
 
   void callOnTap(TapEvent event) {
     if (widget.onTap != null) {
-      widget.onTap(event);
+      widget.onTap!(event);
     }
   }
 
@@ -293,7 +293,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
 class _Touch {
   int id;
   Offset startOffset;
-  Offset currentOffset;
+  late Offset currentOffset;
 
   _Touch(this.id, this.startOffset) {
     this.currentOffset = startOffset;

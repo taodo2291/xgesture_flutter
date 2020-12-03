@@ -5,6 +5,9 @@
 ## [0.0.3] - TODO: dartfmt
 
 ## [0.0.4] 
+
+## [0.0.5]
+BREAKING
 * add new flag: bypassMoveEventAfterLongPress
 
         by default it is true, means after receive long press event without release pointer (finger still touch on screen the move event will be ignore.
@@ -38,3 +41,7 @@
             );
         }
         ```
+## [1.0.0-nullsafety.0]
+    BREAKING: opt into null safety
+    feat!: upgrade Dart SDK constraints to >=2.12.0-0 <3.0.0
+
