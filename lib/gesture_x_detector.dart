@@ -26,7 +26,8 @@ class XGestureDetector extends StatefulWidget {
       this.bypassTapEventOnDoubleTap = false,
       this.doubleTapTimeConsider = 250,
       this.longPressTimeConsider = 350,
-      this.onLongPress});
+      this.onLongPress,
+      this.onLongPressEnd});
 
   /// The widget below this widget in the tree.
   ///
@@ -80,6 +81,9 @@ class XGestureDetector extends StatefulWidget {
 
   /// A pointer has remained in contact with the screen at the same location for a long period of time
   final TapEventListener? onLongPress;
+
+  /// The pointer are no longer in contact with the screen after onLongPress event.
+  final Function()? onLongPressEnd;
 
   /// A specific duration to detect long press
   final int longPressTimeConsider;
@@ -151,10 +155,9 @@ class _XGestureDetectorState extends State<XGestureDetector> {
         switch2MoveStartState(touch, event);
         break;
       case _GestureState.MoveStart:
-        if (widget.onMoveUpdate != null)
-          widget.onMoveUpdate!(MoveEvent(
-              event.localPosition, event.position, event.pointer,
-              delta: event.delta, localDelta: event.localDelta));
+        widget.onMoveUpdate?.call(MoveEvent(
+            event.localPosition, event.position, event.pointer,
+            delta: event.delta, localDelta: event.localDelta));
         break;
       case _GestureState.ScaleStart:
         touch.startOffset = touch.currentOffset;
@@ -187,9 +190,8 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   void switch2MoveStartState(_Touch touch, PointerMoveEvent event) {
     state = _GestureState.MoveStart;
     touch.startOffset = event.localPosition;
-    if (widget.onMoveStart != null)
-      widget.onMoveStart!(
-          MoveEvent(event.localPosition, event.localPosition, event.pointer));
+    widget.onMoveStart?.call(
+        MoveEvent(event.localPosition, event.localPosition, event.pointer));
   }
 
   double angleBetweenLines(_Touch f, _Touch s) {
@@ -227,12 +229,14 @@ class _XGestureDetectorState extends State<XGestureDetector> {
     } else if (state == _GestureState.ScaleStart ||
         state == _GestureState.Scalling) {
       state = _GestureState.Unknown;
-      if (widget.onScaleEnd != null) widget.onScaleEnd!();
+      widget.onScaleEnd?.call();
     } else if (state == _GestureState.MoveStart) {
       state = _GestureState.Unknown;
-      if (widget.onMoveEnd != null)
-        widget.onMoveEnd!(
-            MoveEvent(event.localPosition, event.position, event.pointer));
+      widget.onMoveEnd
+          ?.call(MoveEvent(event.localPosition, event.position, event.pointer));
+    } else if (state == _GestureState.LongPress) {
+      widget.onLongPressEnd?.call();
+      state = _GestureState.Unknown;
     } else if (state == _GestureState.Unknown && touchCount == 2) {
       state = _GestureState.ScaleStart;
     } else {

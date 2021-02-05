@@ -33,6 +33,7 @@ class _XGestureExampleState extends State<XGestureExample> {
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onLongPress: onLongPress,
+      onLongPressEnd: onLongPressEnd,
       onMoveStart: onMoveStart,
       onMoveEnd: onMoveEnd,
       onMoveUpdate: onMoveUpdate,
@@ -41,6 +42,11 @@ class _XGestureExampleState extends State<XGestureExample> {
       onScaleEnd: onScaleEnd,
       bypassTapEventOnDoubleTap: false,
     );
+  }
+
+  void onLongPressEnd() {
+    setLastEventName('onLongPressEnd');
+    print('onLongPressEnd');
   }
 
   void onScaleEnd() {
