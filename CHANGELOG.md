@@ -47,3 +47,6 @@ BREAKING
 
 ## [1.0.0-nullsafety.1]
     Support onLongPressEnd
+
+## [1.0.0]
+    sound null safety
