@@ -145,51 +145,53 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   }
 
   void onPointerMove(PointerMoveEvent event) {
-    final touch = touches.firstWhere((touch) => touch.id == event.pointer);
-    touch.currentOffset = event.localPosition;
-    cleanupTimer();
+    if (event.delta.dx != 0 && event.delta.dy != 0) {
+      final touch = touches.firstWhere((touch) => touch.id == event.pointer);
+      touch.currentOffset = event.localPosition;
+      cleanupTimer();
 
-    switch (state) {
-      case _GestureState.LongPress:
-        if (widget.bypassMoveEventAfterLongPress) {
-          touch.startOffset = touch.currentOffset;
-        } else {
+      switch (state) {
+        case _GestureState.LongPress:
+          if (widget.bypassMoveEventAfterLongPress) {
+            touch.startOffset = touch.currentOffset;
+          } else {
+            switch2MoveStartState(touch, event);
+          }
+          break;
+        case _GestureState.PointerDown:
           switch2MoveStartState(touch, event);
-        }
-        break;
-      case _GestureState.PointerDown:
-        switch2MoveStartState(touch, event);
-        break;
-      case _GestureState.MoveStart:
-        widget.onMoveUpdate?.call(MoveEvent(
-            event.localPosition, event.position, event.pointer,
-            delta: event.delta, localDelta: event.localDelta));
-        break;
-      case _GestureState.ScaleStart:
-        touch.startOffset = touch.currentOffset;
-        state = _GestureState.Scalling;
-        initScaleAndRotate();
-        if (widget.onScaleStart != null) {
-          final centerOffset =
-              (touches[0].currentOffset + touches[1].currentOffset) / 2;
-          widget.onScaleStart!(centerOffset);
-        }
-        break;
-      case _GestureState.Scalling:
-        if (widget.onScaleUpdate != null) {
-          var rotation = angleBetweenLines(touches[0], touches[1]);
-          final newDistance =
-              (touches[0].currentOffset - touches[1].currentOffset).distance;
-          final centerOffset =
-              (touches[0].currentOffset + touches[1].currentOffset) / 2;
+          break;
+        case _GestureState.MoveStart:
+          widget.onMoveUpdate?.call(MoveEvent(
+              event.localPosition, event.position, event.pointer,
+              delta: event.delta, localDelta: event.localDelta));
+          break;
+        case _GestureState.ScaleStart:
+          touch.startOffset = touch.currentOffset;
+          state = _GestureState.Scalling;
+          initScaleAndRotate();
+          if (widget.onScaleStart != null) {
+            final centerOffset =
+                (touches[0].currentOffset + touches[1].currentOffset) / 2;
+            widget.onScaleStart!(centerOffset);
+          }
+          break;
+        case _GestureState.Scalling:
+          if (widget.onScaleUpdate != null) {
+            var rotation = angleBetweenLines(touches[0], touches[1]);
+            final newDistance =
+                (touches[0].currentOffset - touches[1].currentOffset).distance;
+            final centerOffset =
+                (touches[0].currentOffset + touches[1].currentOffset) / 2;
 
-          widget.onScaleUpdate!(ScaleEvent(
-              centerOffset, newDistance / initialScaleDistance, rotation));
-        }
-        break;
-      default:
-        touch.startOffset = touch.currentOffset;
-        break;
+            widget.onScaleUpdate!(ScaleEvent(
+                centerOffset, newDistance / initialScaleDistance, rotation));
+          }
+          break;
+        default:
+          touch.startOffset = touch.currentOffset;
+          break;
+      }
     }
   }
 
@@ -215,7 +217,8 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   void onPointerUp(PointerEvent event) {
     touches.removeWhere((touch) => touch.id == event.pointer);
 
-    if (state == _GestureState.PointerDown) {
+    if (state == _GestureState.PointerDown ||
+        (event.delta.dx == 0 && event.delta.dy == 0)) {
       if (!widget.bypassTapEventOnDoubleTap || widget.onDoubleTap == null) {
         callOnTap(TapEvent.from(event));
       }
