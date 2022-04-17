@@ -50,3 +50,7 @@ BREAKING
 
 ## [1.0.0]
     sound null safety
+
+## [1.1.0]
+    Fix issue with pixel 5(android 11: https://github.com/taodo2291/xgesture_flutter/pull/7
+    Add behavior to gesture: https://github.com/taodo2291/xgesture_flutter/pull/5
