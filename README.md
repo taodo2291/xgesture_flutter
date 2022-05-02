@@ -6,7 +6,7 @@ Easy to use, lightweight gesture detector for Flutter apps.
 
 ## Features
 
--   Detect tap gestures (Tap, DoubleTap, Scale(start, update, end), Long press, Move(start, update, end)
+-   Detect tap gestures [Tap, DoubleTap, Scale(start, update, end), Long press, Move(start, update, end) and Scroll]
 -   All callbacks can be used simultaneously
 -   Customize: ignore tap event on double tap, change duration time to detect double tap or long-press
 
@@ -69,7 +69,20 @@ class _XGestureExampleState extends State<XGestureExample> {
       onScaleUpdate: onScaleUpdate,
       onScaleEnd: onScaleEnd,
       bypassTapEventOnDoubleTap: false,
+      onLongPressMove: onLongPressMove,
+      onScrollEvent: onScrollEvent,
+      longPressMaximumRangeAllowed: 25,
     );
+  }
+
+  void onScrollEvent(ScrollEvent event) {
+    setLastEventName('onLongPressMove');
+    print('scrolling - pos: ${event.localPos} delta: ${event.scrollDelta}');
+  }
+
+  void onLongPressMove(MoveEvent event) {
+    setLastEventName('onLongPressMove');
+    print('onMoveUpdate - pos: ${event.localPos} delta: ${event.delta}');
   }
 
   void onLongPressEnd() {
@@ -143,6 +156,7 @@ class _XGestureExampleState extends State<XGestureExample> {
       child: child,
       doubleTapTimeConsider: 300,       //customize double tap time
       longPressTimeConsider: 400,       //customize long press time
+      longPressMaximumRangeAllowed: 25, //customize the long press behavior, the touch can be move a some pixels (25 is the distanceSquare, that mean we allow move 5 pixels)
     );
   }
 ```

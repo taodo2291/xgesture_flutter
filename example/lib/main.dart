@@ -41,7 +41,20 @@ class _XGestureExampleState extends State<XGestureExample> {
       onScaleUpdate: onScaleUpdate,
       onScaleEnd: onScaleEnd,
       bypassTapEventOnDoubleTap: false,
+      onLongPressMove: onLongPressMove,
+      onScrollEvent: onScrollEvent,
+      longPressMaximumRangeAllowed: 25,
     );
+  }
+
+  void onScrollEvent(ScrollEvent event) {
+    setLastEventName('onLongPressMove');
+    print('scrolling - pos: ${event.localPos} delta: ${event.scrollDelta}');
+  }
+
+  void onLongPressMove(MoveEvent event) {
+    setLastEventName('onLongPressMove');
+    print('onMoveUpdate - pos: ${event.localPos} delta: ${event.delta}');
   }
 
   void onLongPressEnd() {

@@ -3,6 +3,7 @@ library gesture_x_detector;
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math.dart' as vector;
 
@@ -13,24 +14,26 @@ import 'package:vector_math/vector_math.dart' as vector;
 /// For handle rotate event, please use rotateAngle on onScaleUpdate.
 class XGestureDetector extends StatefulWidget {
   /// Creates a widget that detects gestures.
-  XGestureDetector({
-    required this.child,
-    this.onTap,
-    this.onMoveUpdate,
-    this.onMoveEnd,
-    this.onMoveStart,
-    this.onScaleStart,
-    this.onScaleUpdate,
-    this.onScaleEnd,
-    this.onDoubleTap,
-    this.bypassMoveEventAfterLongPress = true,
-    this.bypassTapEventOnDoubleTap = false,
-    this.doubleTapTimeConsider = 250,
-    this.longPressTimeConsider = 350,
-    this.onLongPress,
-    this.onLongPressEnd,
-    this.behavior = HitTestBehavior.deferToChild,
-  });
+  XGestureDetector(
+      {required this.child,
+      this.onTap,
+      this.onMoveUpdate,
+      this.onMoveEnd,
+      this.onMoveStart,
+      this.onScaleStart,
+      this.onScaleUpdate,
+      this.onScaleEnd,
+      this.onDoubleTap,
+      this.onScrollEvent,
+      this.bypassMoveEventAfterLongPress = true,
+      this.bypassTapEventOnDoubleTap = false,
+      this.doubleTapTimeConsider = 250,
+      this.longPressTimeConsider = 350,
+      this.onLongPress,
+      this.onLongPressMove,
+      this.onLongPressEnd,
+      this.behavior = HitTestBehavior.deferToChild,
+      this.longPressMaximumRangeAllowed = 25});
 
   /// The widget below this widget in the tree.
   ///
@@ -85,13 +88,24 @@ class XGestureDetector extends StatefulWidget {
   /// A pointer has remained in contact with the screen at the same location for a long period of time
   final TapEventListener? onLongPress;
 
+  /// The pointer in the long press state and then made a move
+  final MoveEventListener? onLongPressMove;
+
   /// The pointer are no longer in contact with the screen after onLongPress event.
   final Function()? onLongPressEnd;
+
+  /// The callback for scroll event
+  final Function(ScrollEvent event)? onScrollEvent;
 
   /// A specific duration to detect long press
   final int longPressTimeConsider;
 
+  /// How to behave during hit testing.
   final HitTestBehavior behavior;
+
+  /// The maxium distance between the first touching position and the position when the long press event occurs.
+  /// default: distanceSquared =  25
+  final int longPressMaximumRangeAllowed;
 
   @override
   _XGestureDetectorState createState() => _XGestureDetectorState();
@@ -123,7 +137,15 @@ class _XGestureDetectorState extends State<XGestureDetector> {
       onPointerUp: onPointerUp,
       onPointerMove: onPointerMove,
       onPointerCancel: onPointerUp,
+      onPointerSignal: onPointerSignal,
     );
+  }
+
+  void onPointerSignal(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      this.widget.onScrollEvent?.call(ScrollEvent(event.pointer,
+          event.localPosition, event.position, event.scrollDelta));
+    }
   }
 
   void onPointerDown(PointerDownEvent event) {
@@ -145,53 +167,53 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   }
 
   void onPointerMove(PointerMoveEvent event) {
-    if (event.delta.dx != 0 && event.delta.dy != 0) {
-      final touch = touches.firstWhere((touch) => touch.id == event.pointer);
-      touch.currentOffset = event.localPosition;
-      cleanupTimer();
+    final touch = touches.firstWhere((touch) => touch.id == event.pointer);
+    touch.currentOffset = event.localPosition;
+    cleanupDoubleTimer();
 
-      switch (state) {
-        case _GestureState.LongPress:
-          if (widget.bypassMoveEventAfterLongPress) {
-            touch.startOffset = touch.currentOffset;
-          } else {
-            switch2MoveStartState(touch, event);
-          }
-          break;
-        case _GestureState.PointerDown:
-          switch2MoveStartState(touch, event);
-          break;
-        case _GestureState.MoveStart:
-          widget.onMoveUpdate?.call(MoveEvent(
+    switch (state) {
+      case _GestureState.LongPress:
+        if (widget.bypassMoveEventAfterLongPress) {
+          widget.onLongPressMove?.call(MoveEvent(
               event.localPosition, event.position, event.pointer,
               delta: event.delta, localDelta: event.localDelta));
-          break;
-        case _GestureState.ScaleStart:
-          touch.startOffset = touch.currentOffset;
-          state = _GestureState.Scalling;
-          initScaleAndRotate();
-          if (widget.onScaleStart != null) {
-            final centerOffset =
-                (touches[0].currentOffset + touches[1].currentOffset) / 2;
-            widget.onScaleStart!(centerOffset);
-          }
-          break;
-        case _GestureState.Scalling:
-          if (widget.onScaleUpdate != null) {
-            var rotation = angleBetweenLines(touches[0], touches[1]);
-            final newDistance =
-                (touches[0].currentOffset - touches[1].currentOffset).distance;
-            final centerOffset =
-                (touches[0].currentOffset + touches[1].currentOffset) / 2;
+        } else {
+          switch2MoveStartState(touch, event);
+        }
+        break;
+      case _GestureState.PointerDown:
+        switch2MoveStartState(touch, event);
+        break;
+      case _GestureState.MoveStart:
+        widget.onMoveUpdate?.call(MoveEvent(
+            event.localPosition, event.position, event.pointer,
+            delta: event.delta, localDelta: event.localDelta));
+        break;
+      case _GestureState.ScaleStart:
+        touch.startOffset = touch.currentOffset;
+        state = _GestureState.Scalling;
+        initScaleAndRotate();
+        if (widget.onScaleStart != null) {
+          final centerOffset =
+              (touches[0].currentOffset + touches[1].currentOffset) / 2;
+          widget.onScaleStart!(centerOffset);
+        }
+        break;
+      case _GestureState.Scalling:
+        if (widget.onScaleUpdate != null) {
+          var rotation = angleBetweenLines(touches[0], touches[1]);
+          final newDistance =
+              (touches[0].currentOffset - touches[1].currentOffset).distance;
+          final centerOffset =
+              (touches[0].currentOffset + touches[1].currentOffset) / 2;
 
-            widget.onScaleUpdate!(ScaleEvent(
-                centerOffset, newDistance / initialScaleDistance, rotation));
-          }
-          break;
-        default:
-          touch.startOffset = touch.currentOffset;
-          break;
-      }
+          widget.onScaleUpdate!(ScaleEvent(
+              centerOffset, newDistance / initialScaleDistance, rotation));
+        }
+        break;
+      default:
+        touch.startOffset = touch.currentOffset;
+        break;
     }
   }
 
@@ -217,8 +239,7 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   void onPointerUp(PointerEvent event) {
     touches.removeWhere((touch) => touch.id == event.pointer);
 
-    if (state == _GestureState.PointerDown ||
-        (event.delta.dx == 0 && event.delta.dy == 0)) {
+    if (state == _GestureState.PointerDown) {
       if (!widget.bypassTapEventOnDoubleTap || widget.onDoubleTap == null) {
         callOnTap(TapEvent.from(event));
       }
@@ -263,13 +284,20 @@ class _XGestureDetectorState extends State<XGestureDetector> {
       }
       longPressTimer =
           Timer(Duration(milliseconds: widget.longPressTimeConsider), () {
-        if (touchCount == 1 && touches[0].id == event.pointer) {
+        if (touchCount == 1 &&
+            touches[0].id == event.pointer &&
+            inLongPressRange(touches[0])) {
           state = _GestureState.LongPress;
           widget.onLongPress!(event);
           cleanupTimer();
         }
       });
     }
+  }
+
+  bool inLongPressRange(_Touch touch) {
+    return (touch.currentOffset - touch.startOffset).distanceSquared <
+        widget.longPressMaximumRangeAllowed;
   }
 
   void startDoubleTapTimer(TapEvent event) {
@@ -284,13 +312,17 @@ class _XGestureDetectorState extends State<XGestureDetector> {
   }
 
   void cleanupTimer() {
-    if (doubleTapTimer != null) {
-      doubleTapTimer!.cancel();
-      doubleTapTimer = null;
-    }
+    cleanupDoubleTimer();
     if (longPressTimer != null) {
       longPressTimer!.cancel();
       longPressTimer = null;
+    }
+  }
+
+  void cleanupDoubleTimer() {
+    if (doubleTapTimer != null) {
+      doubleTapTimer!.cancel();
+      doubleTapTimer = null;
     }
   }
 
@@ -409,6 +441,47 @@ class ScaleEvent {
   final double rotationAngle;
 
   const ScaleEvent(this.focalPoint, this.scale, this.rotationAngle);
+}
+
+/// The pointer issued a scroll event.
+///
+/// Scrolling the scroll wheel on a mouse is an example of an event that
+/// would create a [XGestureDetector.ScrollEvent]
+///
+/// See also: [PointerScrollEvent].
+///
+/// 1. To use this event for scalling, we can use localPos as the focal point
+/// and scrollDelta.distance to get the scale value, scrollDelta.direction to get the direction
+/// 2. To use this event for scroll, just use scrollDelta (e.g: currentPosition += scrollDelta)
+@immutable
+class ScrollEvent {
+  /// the pointer id
+  final int pointer;
+
+  /// The [position] transformed into the event receiver's local coordinate
+  /// system according to [transform].
+  ///
+  /// If this event has not been transformed, [position] is returned as-is.
+  /// See also:
+  ///
+  ///  * [position], which is the position in the global coordinate system of
+  ///    the screen.
+  final Offset localPos;
+
+  /// Coordinate of the position of the pointer, in logical pixels in the global
+  /// coordinate space.
+  ///
+  /// See also:
+  ///
+  ///  * [localPosition], which is the [position] transformed into the local
+  ///    coordinate system of the event receiver.
+  final Offset position;
+
+  /// The amount to scroll, in logical pixels.
+  final Offset scrollDelta;
+
+  const ScrollEvent(
+      this.pointer, this.localPos, this.position, this.scrollDelta);
 }
 
 /// Signature for listening to [ScaleEvent] events.
